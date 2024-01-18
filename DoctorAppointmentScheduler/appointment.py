@@ -9,6 +9,7 @@ class TimeSlot:
     dayOfWeek: int  # in 0-7
     startTime: int  # in minutes starting 0 for 00:00 AM
     endTime: int  # in minutes starting 0 for 00:00 AM
+    time_zone: str
 
 
 @dataclass
@@ -20,12 +21,20 @@ class Appointment:
 
 
 class DoctorSchedule:
-    def __init__(self, doctor_name, timings=None):
+    def __init__(self, doctor_name):
         self.doctor_name = doctor_name
         self.time_zone_wise_slots = defaultdict(list)  # list of TimeSlot
         self.appointments = {}  # Pin wise details
         self.are_appointments_full = False
-        model = Scheduler()
+
+    def add_doctor_slot(self, time_zone, day, start_time, end_time):
+        time_slot = TimeSlot(
+            dayOfWeek=day,
+            time_zone=time_zone,
+            startTime=start_time,
+            endTime=end_time,
+        )
+        self.time_zone_wise_slots[time_zone].append(time_slot)
 
     def is_valid_time(self, appointment_start_time, appointment_end_time, available_start_time, available_end_time):
         return available_start_time <= appointment_start_time <= appointment_end_time <= available_end_time
@@ -42,6 +51,7 @@ class DoctorSchedule:
                 ):
                     return True
         return False
+
     def get_available_slots(self, doctor_name):
         available_slots = []
         model = Scheduler()
@@ -74,9 +84,9 @@ class DoctorSchedule:
     def remove_appointment(self, patient_name, pin):
         for pin, appointments in self.appointments.items():
             for appointment in appointments:
-                if appointment['Name'] == uspatient_name and appointment['PIN'] == user_pin:
+                if appointment['Name'] == patient_name and appointment['PIN'] == pin:
                     self.appointments[doctor_name].remove(appointment)
-                    return f"Appointment canceled successfully for {user_name} with {doctor_name} at {appointment['Time']}"
+                    return f"Appointment canceled successfully for {patient_name} with {doctor_name} at {appointment['Time']}"
         return "Appointment not found. Please check your name and PIN."
 
     def show_available_appointments(self):
