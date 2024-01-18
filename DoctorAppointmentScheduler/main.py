@@ -1,73 +1,95 @@
-# import click
-#
-from doctor import Doctor, DoctorViewModel, Scheduler
-#
-#
-# @click.group()
-# def cli():
-#     display_available_slots()
-#     book_appointment()
-#     cancel_appointment()
-#     print_full_schedule()
-#
-# @click.command()
-# @click.option('--doctor_name', prompt='Enter the doctor\'s name')
-# def display_available_slots(doctor_name):
-#     model = Doctor()
-#     view_model = DoctorViewModel(model)
-#     slots = view_model.get_available_slots(doctor_name)
-#     print("\nAvailable slots:")
-#     for slot in slots:
-#         print(slot)
-#
-#
-# @click.command()
-# @click.option('--doctor_name', prompt='Enter the doctor\'s name')
-# @click.option('--user_name', prompt='Enter your name')
-# @click.option('--user_pin', prompt='Enter your PIN')
-# @click.option('--user_timezone', prompt='Enter your timezone')
-# def book_appointment(doctor_name, user_name, user_pin, user_timezone):
-#     model = Doctor()
-#     view_model = DoctorViewModel(model)
-#     slots = view_model.get_available_slots(doctor_name, user_timezone)
-#     click.echo("\nAvailable slots:")
-#     for slot in slots:
-#         click.echo(slot)
-#     appointment_time_str = click.prompt('Enter the preferred time for the appointment', type=str)
-#     appointment_time = model.convert_to_utc(appointment_time_str, user_timezone)
-#     result = model.book_appointment(doctor_name, user_name, user_pin, user_timezone, appointment_time)
-#     click.echo(result)
-#
-#
-# @click.command()
-# @click.option('--user_name', prompt='Enter your name')
-# @click.option('--user_pin', prompt='Enter your PIN')
-# def cancel_appointment(user_name, user_pin):
-#     model = Doctor()
-#     result = model.cancel_appointment(user_name, user_pin)
-#     click.echo(result)
-#
-#
-# @click.command()
-# def print_full_schedule():
-#     model = Doctor()
-#     view_model = DoctorViewModel(model)
-#     schedule = view_model.get_full_schedule()
-#     click.echo("\nFull Schedule:")
-#     for appointment in schedule:
-#         click.echo(appointment)
-#
-#
-# cli.add_command(display_available_slots)
-# cli.add_command(book_appointment)
-# cli.add_command(cancel_appointment)
-# cli.add_command(print_full_schedule)
+from doctor import Scheduler, parse_day, parse_time_in_minutes
+
+
+def show_available_doctor_schedule(doctor):
+    print("\n-----------------------------------------------")
+    print("\tBELOW ARE AVAILABLE APPOINTMENTS FOR THE DOCTOR")
+    print("-------------------------------------------------")
+    for av_appointment in doctor.show_available_appointments():
+        print(av_appointment)
+    print()
+
+
+def ask_for_doctor_name(sch):
+    print("\n----------------------------------------------------")
+    print("\tADD OR REMOVE DOCTOR APPOINTMENTS")
+    print("------------------------------------------------------")
+    print("\nSelect number for the corresponding doctor name")
+    doctor_names = sch.show_doctors_with_available_slots()
+    for i in range(len(doctor_names)):
+        print(f"{i + 1} : {doctor_names[i].doctor_name}")
+    num = int(input("\nSelect doctor : "))
+    doctor = doctor_names[num - 1]
+    show_available_doctor_schedule(doctor)
+
+    print("B : Book Appointment")
+    print("R : Remove Appointment")
+    print("H : Home")
+
+    return doctor
+
+
+def ask_for_booking_details(doctor):
+    name = input("\nEnter patient name : ")
+
+    print("\nBelow are the timezone indexes -")
+    time_zones = list(set(doctor.time_zone_wise_slots.keys()))
+    for i in range(len(time_zones)):
+        print(f"{i + 1} : {time_zones[i]}")
+    num = int(input("\nEnter timezone index : "))
+    time_zone = time_zones[num - 1]
+    day = input("Enter day : ")
+    start_time = input("Enter start time(in AM/PM) : ")
+    end_time = input("Enter end time : ")
+    pin = input("Enter booking pin : ")
+
+    success, error = doctor.add_appointment(
+        name,
+        time_zone,
+        parse_day(day),
+        parse_time_in_minutes(start_time),
+        parse_time_in_minutes(end_time),
+        pin
+    )
+
+    if success:
+        print("\nBooking done successfully!")
+    else:
+        print("\nBooking failed.", error)
+        print("Please retry!!!")
+    print("\nH : Home")
+
+
+def ask_for_cancellation_details(doctor):
+    name = input("\nEnter patient name :")
+    pin = input("Enter booking pin :")
+
+    success, error = doctor.remove_appointment(name, pin)
+    if success:
+        print("\nBooking cancelled!")
+    else:
+        print("\nCancellation failed.", error)
+        print("Please retry!!!")
+    print("\nH : Home")
+
 
 if __name__ == "__main__":
     sch = Scheduler()
-    ch = ""
+    ch = "H"
+    doctor = None
+
     while ch != "E":
-
+        try:
+            if ch == "H":
+                doctor = ask_for_doctor_name(sch)
+            elif ch == "B":
+                ask_for_booking_details(doctor)
+            elif ch == "R":
+                ask_for_cancellation_details(doctor)
+            else:
+                print("Choose amongst available options only!")
+        except Exception as e:
+            print("Please enter valid input and retry")
+            print(f"Error :", e, "\n")
         print("E : Exit")
-        ch = input()
-
+        ch = input("\n\nEnter Option : ")

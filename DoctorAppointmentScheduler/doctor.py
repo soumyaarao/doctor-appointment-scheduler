@@ -97,16 +97,29 @@ def parse_day(day):
         "saturday": 5,
         "sunday": 6,
     }
-    return name_to_num[day.lower()]
+    weekday = name_to_num.get(day.lower(), None)
+    if weekday is None:
+        raise Exception(f"{day} is not a valid weekday/weekend name")
+    return weekday
 
-def parse_time_in_mins(time_in_str):
+
+def parse_time_in_minutes(time_in_str):
     is_pm = "pm" in time_in_str.lower()
     hours = int(time_in_str.split(":")[0])
     parsed_minutes = int(time_in_str.split(":")[1][:2])
     if is_pm:
         hours += 12
-    minutes = hours*60 + parsed_minutes
+    minutes = hours * 60 + parsed_minutes
     return minutes
+
+
+def parse_time_from_minutes(time_in_int):
+    hrs = time_in_int // 60
+    minutes = time_in_int - hrs
+    is_pm = True if hrs >= 12 else False
+    hrs = max(hrs - 12, 0)
+    return f"{hrs}:{minutes}{'PM' if is_pm else 'AM'}"
+
 
 class Scheduler:
     def __init__(self):
@@ -135,8 +148,16 @@ class Scheduler:
                 doctor_schedules[doctor_name] = DoctorSchedule(doctor_name)
             time_zone = schedule[header_to_index["Timezone"]]
             day = parse_day(schedule[header_to_index["Day of Week"]])
-            start_time = parse_time_in_mins(schedule[header_to_index["Available at"]])
-            end_time = parse_time_in_mins(schedule[header_to_index["Available until"]])
+            start_time = parse_time_in_minutes(schedule[header_to_index["Available at"]])
+            end_time = parse_time_in_minutes(schedule[header_to_index["Available until"]])
             doctor_schedules[doctor_name].add_doctor_slot(time_zone, day, start_time, end_time)
 
         return doctor_schedules
+
+    def show_doctors_with_available_slots(self):
+        doctors = []
+        for doctor, doctor_item in self.doctor_schedules.items():
+            if doctor_item.are_appointments_full:
+                continue
+            doctors.append(doctor_item)
+        return doctors
