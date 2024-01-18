@@ -6,12 +6,14 @@ class TimeSlot:
     dayOfWeek: int # in 0-7
     startTime: int # in minutes starting 0 for 00:00 AM
     endTime: int # in minutes starting 0 for 00:00 AM
+
 @dataclass
 class Appointment:
     patient: str
     time_zone: str
     startTime: int
     endTime: int
+
 class DoctorSchedule:
     def __init__(self, doctor_name, timings):
         self.doctor_name = doctor_name
@@ -27,6 +29,6 @@ class DoctorSchedule:
     def remove_appointment(self, patient_name, pin):
         pass # return True if removed else False if pin is incorrect
 
-    def show_appointment(self, time_zone, day):
+    def show_available_appointments(self):
         pass # return list of available slots
 
