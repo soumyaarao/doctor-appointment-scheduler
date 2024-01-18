@@ -11,11 +11,10 @@ def cli():
 
 @click.command()
 @click.option('--doctor_name', prompt='Enter the doctor\'s name')
-@click.option('--user_timezone', prompt='Enter your timezone')
-def display_available_slots(doctor_name, user_timezone):
+def display_available_slots(doctor_name):
     model = Doctor()
     view_model = DoctorViewModel(model)
-    slots = view_model.get_available_slots(doctor_name, user_timezone)
+    slots = view_model.get_available_slots(doctor_name)
     print("\nAvailable slots:")
     for slot in slots:
         print(slot)

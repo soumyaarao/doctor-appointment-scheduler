@@ -1,5 +1,6 @@
 import csv
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+import pytz
 
 class Doctor:
     def __init__(self):
@@ -19,8 +20,9 @@ class Doctor:
             if slot['Name'] == doctor_name:
                 if doctor_name not in self.appointments:
                     self.appointments[doctor_name] = []
-                available_start_time = self.convert_to_user_timezone(slot['Available at'], slot['Timezone'], user_timezone)
-                available_end_time = self.convert_to_user_timezone(slot['Available until'], slot['Timezone'], user_timezone)
+                available_start_time = slot['Available at']
+                available_end_time = slot['Available until']
+                time_zone = slot['Timezone']
                 if self.is_valid_time(appointment_time, available_start_time, available_end_time) and \
                         not self.is_slot_booked(doctor_name, appointment_time):
                     self.appointments[doctor_name].append({'Name': user_name, 'PIN': user_pin, 'Time': appointment_time})
@@ -38,12 +40,12 @@ class Doctor:
         return "Appointment not found. Please check your name and PIN."
 
     def convert_to_user_timezone(self, time_str, from_timezone, to_timezone):
-        time_format = "%I:%M%p"
-        from_zone = timezone(timezone.utc)
-        to_zone = timezone(to_timezone)
-        utc_time = datetime.strptime(time_str, time_format).replace(tzinfo=from_zone)
-        user_time = utc_time.astimezone(to_zone).strftime(time_format)
-        return user_time
+        from_zone = pytz.timezone(from_timezone)
+        to_zone = pytz.timezone(to_timezone)
+
+        utc_time = pytz.utc.localize(datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S"))
+        user_time = utc_time.astimezone(to_zone)
+        return user_time.strftime("%Y-%m-%d %H:%M:%S")
 
     def is_valid_time(self, appointment_time, available_start_time, available_end_time):
         return available_start_time <= appointment_time <= available_end_time
@@ -67,13 +69,14 @@ class DoctorViewModel:
     def __init__(self, model):
         self.model = model
 
-    def get_available_slots(self, doctor_name, user_timezone):
+    def get_available_slots(self, doctor_name):
         available_slots = []
         for slot in self.model.doctor_schedule:
             if slot['Name'] == doctor_name:
-                start_time = self.model.convert_to_user_timezone(slot['Available at'], slot['Timezone'], user_timezone)
-                end_time = self.model.convert_to_user_timezone(slot['Available until'], slot['Timezone'], user_timezone)
-                available_slots.append(f"{slot['Day of Week']}: {start_time} - {end_time}")
+                start_time = slot['Available at']
+                end_time = slot['Available until']
+                time_zone = slot['Timezone']
+                available_slots.append(f"{slot['Day of Week']}: {start_time} - {end_time} - {time_zone}")
         return available_slots
 
     def get_full_schedule(self):
