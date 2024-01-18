@@ -86,7 +86,6 @@ class Scheduler:
     def __init__(self):
         self.doctor_schedules = self.load_doctor_schedules()
         self.appointments = {}
-        self.is_available = True
 
     def parse_availability_csv(self):
         with open('availability.csv', newline='') as csvfile:

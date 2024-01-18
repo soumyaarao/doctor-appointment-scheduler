@@ -1,5 +1,6 @@
 import click
 
+from appointment import DoctorSchedule
 from doctor import Doctor, DoctorViewModel
 
 @click.group()
@@ -12,9 +13,8 @@ def cli():
 @click.command()
 @click.option('--doctor_name', prompt='Enter the doctor\'s name')
 def display_available_slots(doctor_name):
-    model = Doctor()
-    view_model = DoctorViewModel(model)
-    slots = view_model.get_available_slots(doctor_name)
+    model = DoctorSchedule(doctor_name)
+    slots = model.get_available_slots(doctor_name)
     print("\nAvailable slots:")
     for slot in slots:
         print(slot)
