@@ -81,3 +81,19 @@ class DoctorViewModel:
 
     def get_full_schedule(self):
         return self.model.print_full_schedule()
+
+class Scheduler:
+    def __init__(self):
+        self.doctor_schedules = self.load_doctor_schedules()
+        self.appointments = {}
+        self.is_available = True
+
+    def parse_availability_csv(self):
+        with open('availability.csv', newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            schedule_info = [row for row in reader]
+        return schedule_info
+    def load_doctor_schedules(self):
+        schedule_info = self.parse_availability_csv()
+        doctor_schedules = []
+        return doctor_schedules
