@@ -79,17 +79,17 @@ if __name__ == "__main__":
     doctor = None
 
     while ch != "E":
-        try:
-            if ch == "H":
-                doctor = ask_for_doctor_name(sch)
-            elif ch == "B":
-                ask_for_booking_details(doctor)
-            elif ch == "R":
-                ask_for_cancellation_details(doctor)
-            else:
-                print("Choose amongst available options only!")
-        except Exception as e:
-            print("Please enter valid input and retry")
-            print(f"Error :", e, "\n")
+        # try:
+        if ch == "H":
+            doctor = ask_for_doctor_name(sch)
+        elif ch == "B":
+            ask_for_booking_details(doctor)
+        elif ch == "R":
+            ask_for_cancellation_details(doctor)
+        else:
+            print("Choose amongst available options only!")
+        # except Exception as e:
+        #     print("Please enter valid input and retry")
+        #     print(f"Error :", e, "\n")
         print("E : Exit")
         ch = input("\n\nEnter Option : ")
