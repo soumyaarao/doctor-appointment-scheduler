@@ -1,6 +1,8 @@
 from collections import defaultdict
 from dataclasses import dataclass
 
+from utils import get_day_name_from_day
+
 
 @dataclass
 class TimeSlot:
@@ -103,7 +105,7 @@ class DoctorSchedule:
         return True, None
 
     def show_available_appointments(self):
-        from doctor import parse_time_from_minutes
+        from utils import parse_time_from_minutes
         available_slots = []
 
         for time_zone, slots in self.time_zone_wise_slots.items():
@@ -121,6 +123,6 @@ class DoctorSchedule:
                 )
 
                 if not is_booked:
-                    available_slots.append(f"{day}: {start_time} - {end_time} - {time_zone}")
+                    available_slots.append(f"{get_day_name_from_day(day)}: {start_time} - {end_time} - {time_zone}")
 
         return available_slots
