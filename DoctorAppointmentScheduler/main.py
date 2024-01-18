@@ -32,7 +32,7 @@ def ask_for_doctor_name(sch):
 def ask_for_booking_details(doctor):
     name = input("\nEnter patient name : ")
 
-    print("\nBelow are the timezone indexes -")
+    print("\nBelow are the doctor's timezone indexes -")
     time_zones = list(set(doctor.time_zone_wise_slots.keys()))
     for i in range(len(time_zones)):
         print(f"{i + 1} : {time_zones[i]}")
