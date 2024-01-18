@@ -1,7 +1,6 @@
 from collections import defaultdict
 from dataclasses import dataclass
 
-from doctor import Scheduler
 
 
 @dataclass
@@ -24,7 +23,7 @@ class DoctorSchedule:
     def __init__(self, doctor_name):
         self.doctor_name = doctor_name
         self.time_zone_wise_slots = defaultdict(list)  # list of TimeSlot
-        self.appointments = {}  # Pin wise details
+        self.appointments = {}
         self.are_appointments_full = False
 
     def add_doctor_slot(self, time_zone, day, start_time, end_time):
@@ -52,15 +51,17 @@ class DoctorSchedule:
                     return True
         return False
 
-    def get_available_slots(self, doctor_name):
+    def get_available_slots(self, schedule):
         available_slots = []
-        model = Scheduler()
-        for slot in model.load_doctor_schedules():
-            if slot['Name'] == doctor_name:
-                start_time = slot['Available at']
-                end_time = slot['Available until']
-                time_zone = slot['Timezone']
-                available_slots.append(f"{slot['Day of Week']}: {start_time} - {end_time} - {time_zone}")
+        slots = schedule.time_zone_wise_slots.values()
+        slot = None
+        for time_slot in slots:
+            slot = time_slot
+        for sl in slot:
+            start_time = sl.startTime
+            end_time = sl.endTime
+            time_zone = sl.time_zone
+            available_slots.append(f"{sl.dayOfWeek}: {start_time} - {end_time} - {time_zone}")
         return available_slots
 
     def add_appointment(self, doctor_name, patient_name, time_zone, day, start_time, end_time, pin):
