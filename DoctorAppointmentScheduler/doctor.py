@@ -2,6 +2,9 @@ import csv
 from datetime import datetime, timezone, timedelta
 import pytz
 
+from DoctorAppointmentScheduler.appointment import DoctorSchedule
+
+
 class Doctor:
     def __init__(self):
         self.doctor_schedule = self.load_doctor_schedule()
@@ -25,7 +28,8 @@ class Doctor:
                 time_zone = slot['Timezone']
                 if self.is_valid_time(appointment_time, available_start_time, available_end_time) and \
                         not self.is_slot_booked(doctor_name, appointment_time):
-                    self.appointments[doctor_name].append({'Name': user_name, 'PIN': user_pin, 'Time': appointment_time})
+                    self.appointments[doctor_name].append(
+                        {'Name': user_name, 'PIN': user_pin, 'Time': appointment_time})
                     return f"Appointment booked successfully for {user_name} with {doctor_name} at {appointment_time}"
                 else:
                     return "Invalid time or slot already booked. Please choose another time."
@@ -82,18 +86,58 @@ class DoctorViewModel:
     def get_full_schedule(self):
         return self.model.print_full_schedule()
 
+
+def parse_day(day):
+    name_to_num = {
+        "monday": 0,
+        "tuesday": 1,
+        "wednesday": 2,
+        "thursday": 3,
+        "friday": 4,
+        "saturday": 5,
+        "sunday": 6,
+    }
+    return name_to_num[day.lower()]
+
+def parse_time_in_mins(time_in_str):
+    is_pm = "pm" in time_in_str.lower()
+    hours = int(time_in_str.split(":")[0])
+    parsed_minutes = int(time_in_str.split(":")[1][:2])
+    if is_pm:
+        hours += 12
+    minutes = hours*60 + parsed_minutes
+    return minutes
+
 class Scheduler:
     def __init__(self):
         self.doctor_schedules = self.load_doctor_schedules()
         self.appointments = {}
         self.is_available = True
 
-    def parse_availability_csv(self):
-        with open('availability.csv', newline='') as csvfile:
-            reader = csv.DictReader(csvfile)
-            schedule_info = [row for row in reader]
-        return schedule_info
+    @staticmethod
+    def parse_availability_csv(file_name="availability.csv"):
+        header_to_index = {}
+        schedules = []
+        with open(file_name) as csvfile:
+            rows = csv.reader(csvfile)
+            for row in rows:
+                if not header_to_index and "Name" in row and "Timezone" in row:
+                    header_to_index = {header: idx for idx, header in enumerate(row)}
+                elif header_to_index and row:
+                    schedules.append(row)
+        return header_to_index, schedules
+
     def load_doctor_schedules(self):
-        schedule_info = self.parse_availability_csv()
-        doctor_schedules = []
+        header_to_index, schedules = self.parse_availability_csv()
+        doctor_schedules = {}
+        for schedule in schedules:
+            doctor_name = schedule[header_to_index["Name"]]
+            if doctor_name not in doctor_schedules:
+                doctor_schedules[doctor_name] = DoctorSchedule(doctor_name)
+            time_zone = schedule[header_to_index["Timezone"]]
+            day = parse_day(schedule[header_to_index["Day of Week"]])
+            start_time = parse_time_in_mins(schedule[header_to_index["Available at"]])
+            end_time = parse_time_in_mins(schedule[header_to_index["Available until"]])
+            doctor_schedules[doctor_name].add_doctor_slot(time_zone, day, start_time, end_time)
+
         return doctor_schedules
